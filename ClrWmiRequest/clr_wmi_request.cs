@@ -15,6 +15,12 @@ public partial class UserDefinedFunctions
         string qLanguage = "WQL";
         bool catchErrors = false;
 
+        // Default server is local host
+        if (string.IsNullOrWhiteSpace(server))
+        {
+            server = ".";
+        }
+
         try
         {
 
