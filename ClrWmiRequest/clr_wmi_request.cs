@@ -11,11 +11,12 @@ public partial class UserDefinedFunctions
     public static SqlXml clr_wmi_request(string server, string query, string headers)
     {
         XElement returnXml;
+        ManagementScope scope = new ManagementScope("\\\\" + server + "\\root\\cimv2");
+        string qLanguage = "WQL";
+        bool catchErrors = false;
 
         try
         {
-            ManagementScope scope = new ManagementScope("\\\\" + server + "\\root\\cimv2");
-            string qLanguage = "WQL";
 
             // Add in any headers provided
             if (!string.IsNullOrWhiteSpace(headers))
@@ -92,17 +93,17 @@ public partial class UserDefinedFunctions
 
             // Get headers
             var headersXml = new XElement("Headers",
-                    new XElement("Success", "True"),
-                    new XElement("Scope", searcher.Scope.Path),
-                    new XElement("Query", searcher.Query.QueryString),
-                    new XElement("QueryLanguage", searcher.Query.QueryLanguage),
-                    new XElement("Count", results.Count),
-                    new XElement("Authentication", scope.Options.Authentication),
-                    new XElement("Authority", scope.Options.Authority),
-                    new XElement("Impersonation", scope.Options.Impersonation),
-                    new XElement("EnablePriviliges", scope.Options.EnablePrivileges),
-                    new XElement("Username", scope.Options.Username),
-                    new XElement("Timeout", scope.Options.Timeout.Milliseconds)
+                    new XElement("Header", new XAttribute("Name", "Success"), "True"),
+                    new XElement("Header", new XAttribute("Name", "Scope"), searcher.Scope.Path),
+                    new XElement("Header", new XAttribute("Name", "Query"), searcher.Query.QueryString),
+                    new XElement("Header", new XAttribute("Name", "QueryLanguage"), searcher.Query.QueryLanguage),
+                    new XElement("Header", new XAttribute("Name", "Count"), results.Count),
+                    new XElement("Header", new XAttribute("Name", "Authentication"), scope.Options.Authentication),
+                    new XElement("Header", new XAttribute("Name", "Authority"), scope.Options.Authority),
+                    new XElement("Header", new XAttribute("Name", "Impersonation"), scope.Options.Impersonation),
+                    new XElement("Header", new XAttribute("Name", "EnablePriviliges"), scope.Options.EnablePrivileges),
+                    new XElement("Header", new XAttribute("Name", "Username"), scope.Options.Username),
+                    new XElement("Header", new XAttribute("Name", "Timeout"), scope.Options.Timeout.Milliseconds)
                 );
 
             // Get values
@@ -144,24 +145,37 @@ public partial class UserDefinedFunctions
         }
         catch (Exception e)
         {
-            returnXml =
-                new XElement("Response",
-                    new XElement("Headers",
-                        new XElement("Success", "False"),
-                        new XElement("Server", server),
-                        new XElement("Query", query),
-                        new XElement("Count", 0)
-                        ),
-                    new XElement("Result",
-                        new XElement("Error", 
-                            new XAttribute("Source", e.Source),
-                            new XAttribute("HResult", e.HResult),
-                            new XAttribute("Message", e.Message),
-                            e.StackTrace
+            if (catchErrors)
+            {
+                returnXml =
+                    new XElement("Response",
+                        new XElement("Headers",
+                            new XElement("Header", new XAttribute("Name", "Success"), "False"),
+                            new XElement("Header", new XAttribute("Name", "Scope"), null),
+                            new XElement("Header", new XAttribute("Name", "Query"), query),
+                            new XElement("Header", new XAttribute("Name", "QueryLanguage"), qLanguage),
+                            new XElement("Header", new XAttribute("Name", "Count"), 0),
+                            new XElement("Header", new XAttribute("Name", "Authentication"), scope.Options.Authentication),
+                            new XElement("Header", new XAttribute("Name", "Authority"), scope.Options.Authority),
+                            new XElement("Header", new XAttribute("Name", "Impersonation"), scope.Options.Impersonation),
+                            new XElement("Header", new XAttribute("Name", "EnablePriviliges"), scope.Options.EnablePrivileges),
+                            new XElement("Header", new XAttribute("Name", "Username"), scope.Options.Username),
+                            new XElement("Header", new XAttribute("Name", "Timeout"), scope.Options.Timeout.Milliseconds)
+                            ),
+                        new XElement("Result",
+                            new XElement("Error",
+                                new XAttribute("Source", e.Source),
+                                new XAttribute("HResult", e.HResult),
+                                new XElement("Message", e.Message),
+                                new XElement("StackTrace", e.StackTrace)
+                                )
                             )
-                        )
-                );
-
+                    );
+            }
+            else
+            {
+                throw e;
+            }
         }
 
         return new SqlXml(returnXml.CreateReader());
