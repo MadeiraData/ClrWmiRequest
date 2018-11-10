@@ -89,5 +89,6 @@ The result from this function is an XML document generated from the ManagementSc
       * Path - each Item element has its full "Path" as a sub-element
       * Properties - this will contain the collection of properties of each item (i.e. the "fields" from the query)
         * Property - this contains a single property of a given item
-	  * Name - each property element has a single "Name" attribute
-	  * Value - the contents of the Property element is its value
+	    * Name - each property element has a single "Name" attribute
+	    * Value - the contents of the Property element is its value
+	    
