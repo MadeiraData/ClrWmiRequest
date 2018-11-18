@@ -83,6 +83,7 @@ The result from this function is an XML document generated from the ManagementSc
   * Headers - each header will get its own node here
     * Name
     * Value
+    * In addition to the configuration headers, you'd also get 2 new headers "Success" (boolean = True) and "Count" (number).
   * Result - this will contain the content from the response
     * Item - each "Item" element represents a single row returned from the WMI query
       * Name - each Item element has the "Name" attribute
@@ -92,3 +93,61 @@ The result from this function is an XML document generated from the ManagementSc
 	    * Name - each property element has a single "Name" attribute
 	    * Value - the contents of the Property element is its value
 	    
+In case of an error, the results would look a bit different:
+
+* Response - this is the root element
+  * Headers - each header will get its own node here
+    * Name
+    * Value
+    * In addition to the configuration headers, you'd also get 2 new headers "Success" (boolean = False) and "Count" (number = 0).
+  * Result - this will contain the content from the response
+    * Error - one Error element will return with info about the error:
+      * Source - the "Source" attribute will contain the source of the error
+      * Message - the "Message" sub-element will contain the error message
+      * StackTrace - the "StackTrace" sub-element will contain... you guessed it - the stack trace
+	    
+### Example Results
+
+```
+<Response>
+  <Headers>
+      <Header Name="Success">True</Header>
+      <Header Name="...">...</Header>
+      <Header Name="Count">2</Header>
+  </Headers>
+  <Result>
+      <Item Name="MyService">
+          <Path>MyComputer\root\cimv2\Win32_Service["MyService"]</Path>
+          <Properties>
+              <Property Name="State">Started</Property>
+              <Property Name="...">...</Property>
+              <Property Name="...">...</Property>
+          </Properties>
+      </Item>
+      <Item Name="...">
+          <Path>...</Path>
+          <Properties>
+              <Property Name="...">...</Property>
+              <Property Name="...">...</Property>
+              <Property Name="...">...</Property>
+          </Properties>
+      </Item>
+```
+
+### Example Results with Errors
+
+```
+<Response>
+  <Headers>
+      <Header Name="Success">False</Header>
+      <Header Name="...">...</Header>
+      <Header Name="Count">0</Header>
+  </Headers>
+  <Result>
+      <Error Source="...">
+         <Message>...</Message>
+         <StackTrace>...</StackTrace>
+      </Error>
+  </Result>
+</Response>
+```
